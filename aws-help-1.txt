@@ -1,0 +1,15 @@
+You can now run: /usr/local/bin/aws --version
+
+aws configure
+~/.aws/
+aws s3 mb s3://alex-amazonchik-d
+aws s3 ls
+
+aws s3api create-bucket --bucket alex-amazonchik-d --region "us-east-2" --create-bucket-configuration LocationConstraint="us-east-2"
+aws s3api delete-bucket --bucket alex-amazon
+aws s3api put-bucket-policy --bucket $BUCKET_NAME --policy file://~/Desktop/s3-alex-amazonchik/policy.json
+aws s3 sync ~/Desktop/s3-alex-amazonchik/ s3://alex-amazonchik-d
+
+https://awspolicygen.s3.amazonaws.com/policygen.html
+
+aws s3 website s3://alex-amazonchik-d/ --index-document index.html --error-document error.html

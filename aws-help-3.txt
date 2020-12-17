@@ -1,0 +1,85 @@
+You can now run: /usr/local/bin/aws --version
+
+aws ec2 create-default-vpc
+
+VPC     172.31.0.0/16   dopt-7f27b614   default True    560668175758    pending vpc-056c1048a1372e0c7
+CIDRBLOCKASSOCIATIONSET vpc-cidr-assoc-07f2dc0cdd0e0032a        172.31.0.0/16
+CIDRBLOCKSTATE  associated
+
+vpc-056c1048a1372e0c7
+
+aws ec2 create-security-group --group-name alex-sgroup-apache --description "alex-sgroup-apache security for SSH and other access" --vpc-id vpc-056c1048a1372e0c7
+
+sg-0cf77358064e24e74
+
+aws ec2 authorize-security-group-ingress --group-id sg-0cf77358064e24e74 --protocol tcp --port 22 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-id sg-0cf77358064e24e74 --protocol tcp --port 80 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-id sg-0cf77358064e24e74 --protocol tcp --port 443 --cidr 0.0.0.0/0
+
+aws ec2 create-key-pair --key-name alexpairapache  --output text > alexpairapache.pem
+chmod 400 alexpairapache.pem
+
+aws ec2 modify-subnet-attribute --subnet-id subnet-08f14e03731d0b09e --map-public-ip-on-launch
+
+aws ec2 run-instances --image-id ami-09558250a3419e7d0 --count 1 --instance-type t2.micro --key-name alexpairapache --security-group-ids sg-0cf77358064e24e74 --subnet-id subnet-08f14e03731d0b09e --user-data file://./apache.sh
+
+560668175758    r-07fcdd0d95ef44a12
+INSTANCES       0       x86_64  5dfca1b0-45a1-45db-8ce4-4fa8ea456ac5    False   True    xen     ami-09558250a3419e7d0   i-0466b9e8232fc8343     t2.micro        alexpairapache  2020-12-12T09:49:44+00:00       ip-172-31-18-61.us-east-2.compute.internal      172.31.18.61            /dev/xvda       ebs     True            subnet-08f14e03731d0b09e        hvm     vpc-056c1048a1372e0c7
+CAPACITYRESERVATIONSPECIFICATION        open
+CPUOPTIONS      1       1
+ENCLAVEOPTIONS  False
+METADATAOPTIONS enabled 1       optional        pending
+MONITORING      disabled
+NETWORKINTERFACES               interface       06:91:95:b2:d9:26       eni-006eb9a601ab18834   560668175758    ip-172-31-18-61.us-east-2.compute.internal      172.31.18.61    True
+    in-use  subnet-08f14e03731d0b09e        vpc-056c1048a1372e0c7
+ATTACHMENT      2020-12-12T09:49:44+00:00       eni-attach-00ef67dcf0e4b2665    True    0       attaching
+GROUPS  sg-0cf77358064e24e74    alex-sgroup-apache
+PRIVATEIPADDRESSES      True    ip-172-31-18-61.us-east-2.compute.internal      172.31.18.61
+PLACEMENT       us-east-2b              default
+SECURITYGROUPS  sg-0cf77358064e24e74    alex-sgroup-apache
+STATE   0       pending
+STATEREASON     pending pending
+
+aws ec2 create-tags --resources i-0466b9e8232fc8343 --tags Key=Role,Value=WebServer
+aws ec2 create-image --instance-id i-0466b9e8232fc8343 --name "alex-image-apache" --description "Image (Apache Web Server)"
+
+ami-0f6049597c46a22a4
+
+# Work Check
+aws ec2 run-instances --image-id ami-0f6049597c46a22a4 --count 1 --instance-type t2.micro --key-name alexpairapache --security-group-ids sg-0cf77358064e24e74 --subnet-id subnet-08f14e03731d0b09e
+
+aws ec2 modify-instance-attribute --instance-id i-0466b9e8232fc8343 --attribute userData --value file://./apache1.sh
+aws ec2 stop-instances --instance-ids i-0466b9e8232fc8343
+aws ec2 start-instances --instance-ids i-0466b9e8232fc8343
+aws ec2 describe-instance-status --instance-id i-0466b9e8232fc8343
+
+aws ec2 authorize-security-group-ingress --group-id sg-0e3fb56e5ef543213 --protocol tcp --port 22 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-id sg-0e3fb56e5ef543213 --protocol tcp --port 80 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-id sg-0e3fb56e5ef543213 --protocol tcp --port 443 --cidr 0.0.0.0/0
+
+aws ec2 run-instances --image-id ami-0dd9f0e7df0f0a138 --count 1 --instance-type t2.micro --key-name lab4keys --security-group-ids sg-0cf77358064e24e74 --subnet-id subnet-024fd23e8151bbc77 --user-data file://./apache1.sh
+
+INSTANCES       0       x86_64  7e38c82f-05a4-4e43-b6f3-47e84554a8d4    False   True    xen     ami-0dd9f0e7df0f0a138   i-03b4e8e68cb2c6df0
+     t2.micro        lab4keys        2020-12-17T14:26:32+00:00       ip-172-31-6-116.us-east-2.compute.internal      172.31.6.116            /dev/sda1       ebs     True            subnet-024fd23e8151bbc77        hvm     vpc-056c1048a1372e0c7
+CAPACITYRESERVATIONSPECIFICATION        open
+CPUOPTIONS      1       1
+ENCLAVEOPTIONS  False
+METADATAOPTIONS enabled 1       optional        pending
+MONITORING      disabled
+NETWORKINTERFACES               interface       02:52:40:c0:c3:aa       eni-0543db691172bfc93   560668175758    ip-172-31-6-116.us-east-2.compute.internal      172.31.6.116    True    in-use  subnet-024fd23e8151bbc77        vpc-056c1048a1372e0c7
+ATTACHMENT      2020-12-17T14:26:32+00:00       eni-attach-07294a4d3e25c65d5    True    0       attaching
+GROUPS  sg-0cf77358064e24e74    alex-sgroup-apache
+PRIVATEIPADDRESSES      True    ip-172-31-6-116.us-east-2.compute.internal      172.31.6.116
+PLACEMENT       us-east-2a              default
+SECURITYGROUPS  sg-0cf77358064e24e74    alex-sgroup-apache
+STATE   0       pending
+STATEREASON     pending pending
+
+aws ec2 describe-instance-status --instance-id i-03b4e8e68cb2c6df0
+
+aws ec2 create-image --instance-id i-03b4e8e68cb2c6df0 --name WebServer
+
+ami-039dd03dcb4e20ada
+
+aws ec2 run-instances --image-id ami-039dd03dcb4e20ada --count 1 --instance-type t2.micro --key-name alexpairapache --security-group-ids sg-0cf77358064e24e74
+aws ec2 run-instances --image-id ami-0f6049597c46a22a4 --count 1 --instance-type t2.micro --key-name alexpairapache --security-group-ids sg-0cf77358064e24e74 --subnet-id subnet-08f14e03731d0b09e

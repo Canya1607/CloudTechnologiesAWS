@@ -1,0 +1,125 @@
+You can now run: /usr/local/bin/aws --version
+
+aws configure set default.region us-east-2
+
+aws ec2 create-vpc --cidr-block 10.0.0.0/16 --output json
+
+{
+    "Vpc": {
+        "CidrBlock": "10.0.0.0/16",
+        "DhcpOptionsId": "dopt-7f27b614",
+        "State": "pending",
+        "VpcId": "vpc-0df3cc859aef683da",
+        "OwnerId": "560668175758",
+        "InstanceTenancy": "default",
+        "Ipv6CidrBlockAssociationSet": [],
+        "CidrBlockAssociationSet": [
+            {
+                "AssociationId": "vpc-cidr-assoc-0195f3ee4385df55e",
+                "CidrBlock": "10.0.0.0/16",
+                "CidrBlockState": {
+                    "State": "associated"
+                }
+            }
+        ],
+        "IsDefault": false
+    }
+}
+
+vpc-0df3cc859aef683da
+
+aws ec2 create-tags --resources vpc-0df3cc859aef683da --tags Key=Name,Value="alex-vpc"
+aws ec2 wait vpc-available --vpc-ids vpc-0df3cc859aef683da
+aws ec2 create-internet-gateway
+
+INTERNETGATEWAY igw-0f2c31e830cef62b1 560668175758
+
+aws ec2 attach-internet-gateway --vpc-id vpc-0df3cc859aef683da --internet-gateway-id igw-0f2c31e830cef62b1
+aws ec2 create-tags --resources igw-0f2c31e830cef62b1 --tags Key=Name,Value="alex-igw"
+
+aws ec2 create-subnet --cidr-block 10.0.1.0/24 --vpc-id vpc-0df3cc859aef683da
+
+SUBNET  False   us-east-2b      use2-az2        251     10.0.1.0/24     False   False   560668175758    available       arn:aws:ec2:us-east-2:560668175758:subnet/subnet-02c2748150cea958e      subnet-02c2748150cea958e        vpc-0df3cc859aef683da
+
+aws ec2 modify-subnet-attribute --subnet-id subnet-02c2748150cea958e --map-public-ip-on-launch
+aws ec2 create-tags --resources subnet-02c2748150cea958e --tags Key=Name,Value="alex-snet"
+
+aws ec2 create-route-table --vpc-id vpc-0df3cc859aef683da
+
+ROUTETABLE      560668175758    rtb-0c3a0681e8b982a2f   vpc-0df3cc859aef683da
+ROUTES  10.0.0.0/16     local   CreateRouteTable        active
+
+aws ec2 create-tags --resources rtb-0c3a0681e8b982a2f --tags Key=Name,Value="alex-routes"
+
+aws ec2 create-route --destination-cidr-block 0.0.0.0/0 --gateway-id igw-0f2c31e830cef62b1 --route-table-id rtb-0c3a0681e8b982a2f
+True
+
+aws ec2 associate-route-table --route-table-id rtb-0c3a0681e8b982a2f --subnet-id subnet-02c2748150cea958e
+rtbassoc-0c75bdec8ca238252
+ASSOCIATIONSTATE        associated
+
+aws ec2 wait vpc-available --vpc-ids vpc-0df3cc859aef683da
+
+aws ec2 create-key-pair --key-name alexpair --query 'KeyMaterial' --output text > alexpair.pem
+chmod 400 "alexpair.pem"
+aws ec2 wait key-pair-exists --key-names alexpair
+aws ec2 describe-key-pairs --key-names alexpair
+
+KEYPAIRS        82:e8:00:91:7c:31:db:79:ec:e8:76:39:51:ef:c2:3e:de:94:9e:8b     alexpair        key-01abccaec6d6b9dae
+
+aws ec2 create-security-group --group-name alex-sgroup --description "alex-sgroup security group for SSH access" --vpc-id vpc-0df3cc859aef683da
+sg-0ece65d34ca5c3e0e
+
+aws ec2 describe-security-groups --filters Name=description,Values="alex-sgroup security group for SSH access"
+SECURITYGROUPS  alex-sgroup security group for SSH access       sg-0ece65d34ca5c3e0e    alex-sgroup     560668175758    vpc-0df3cc859aef683da
+IPPERMISSIONSEGRESS     -1
+IPRANGES        0.0.0.0/0
+
+aws ec2 authorize-security-group-ingress --group-id sg-0ece65d34ca5c3e0e --protocol tcp --port 22 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-id sg-0ece65d34ca5c3e0e --protocol tcp --port 80 --cidr 0.0.0.0/0
+aws ec2 wait security-group-exists --group-ids sg-0ece65d34ca5c3e0e
+
+aws ec2 run-instances --image-id ami-09558250a3419e7d0  --count 1 --instance-type t2.micro --key-name alexpair --security-group-ids sg-0ece65d34ca5c3e0e --subnet-id subnet-02c2748150cea958e
+
+560668175758    r-06edab8346e4c6d0e
+INSTANCES       0       x86_64  c6f067a4-32b5-475b-abca-7c412b501509    False   True    xen     ami-09558250a3419e7d0   i-0d012ece56eae65d6     t2.micro        alexpair        2020-12-12T08:30:43+00:00       ip-10-0-1-251.us-east-2.compute.internal        10.0.1.251              /dev/xvda       ebs     True            subnet-02c2748150cea958e        hvm     vpc-0df3cc859aef683da
+CAPACITYRESERVATIONSPECIFICATION        open
+CPUOPTIONS      1       1
+ENCLAVEOPTIONS  False
+METADATAOPTIONS enabled 1       optional        pending
+MONITORING      disabled
+NETWORKINTERFACES               interface       06:ef:13:f4:36:a8       eni-09f6b85afeb52a315   560668175758    10.0.1.251      True    in-use  subnet-02c2748150cea958e        vpc-0df3cc859aef683da
+ATTACHMENT      2020-12-12T08:30:43+00:00       eni-attach-053aee0552cf04294    True    0       attaching
+GROUPS  sg-0ece65d34ca5c3e0e    alex-sgroup
+PRIVATEIPADDRESSES      True    10.0.1.251
+PLACEMENT       us-east-2b              default
+SECURITYGROUPS  sg-0ece65d34ca5c3e0e    alex-sgroup
+STATE   0       pending
+STATEREASON     pending pending
+
+aws ec2 create-tags --resources i-0d012ece56eae65d6 --tags Key=Role,Value="Web-Server"
+aws ec2 wait instance-exists --instance-ids i-0d012ece56eae65d6
+aws ec2 describe-instances --instance-ids i-0d012ece56eae65d6
+
+RESERVATIONS    560668175758    r-06edab8346e4c6d0e
+INSTANCES       0       x86_64  c6f067a4-32b5-475b-abca-7c412b501509    False   True    xen     ami-09558250a3419e7d0   i-0d012ece56eae65d6     t2.micro        alexpair        2020-12-12T08:30:43+00:00       ip-10-0-1-251.us-east-2.compute.internal        10.0.1.251              18.191.102.206  /dev/xvda       ebs     True            subnet-02c2748150cea958e
+        hvm     vpc-0df3cc859aef683da
+BLOCKDEVICEMAPPINGS     /dev/xvda
+EBS     2020-12-12T08:30:43+00:00       True    attached        vol-009a8a38e9771ff40
+CAPACITYRESERVATIONSPECIFICATION        open
+CPUOPTIONS      1       1
+ENCLAVEOPTIONS  False
+HIBERNATIONOPTIONS      False
+METADATAOPTIONS enabled 1       optional        applied
+MONITORING      disabled
+NETWORKINTERFACES               interface       06:ef:13:f4:36:a8       eni-09f6b85afeb52a315   560668175758    10.0.1.251      True    in-use  subnet-02c2748150cea958e        vpc-0df3cc859aef683da
+ASSOCIATION     amazon          18.191.102.206
+ATTACHMENT      2020-12-12T08:30:43+00:00       eni-attach-053aee0552cf04294    True    0       attached
+GROUPS  sg-0ece65d34ca5c3e0e    alex-sgroup
+PRIVATEIPADDRESSES      True    10.0.1.251
+ASSOCIATION     amazon          18.191.102.206
+PLACEMENT       us-east-2b              default
+SECURITYGROUPS  sg-0ece65d34ca5c3e0e    alex-sgroup
+STATE   16      running
+TAGS    Role    Web-Server
+

@@ -1,0 +1,42 @@
+body {
+  background-color: aliceblue;
+  margin: 0;
+  padding: 0;
+  background-image: url("stalker.jpg");
+}
+
+.box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+
+.text {
+  font-size: 36pt;
+  color: antiquewhite;
+}
+
+.stalker-loner {
+  position: absolute;
+  bottom: -10px;
+  left: 16px;
+  max-height: 500px;
+}
+
+.stalker-logo {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 0%);
+}
+
+.stalker-loner-flip {
+  position: absolute;
+  bottom: -10px;
+  right: 16px;
+  max-height: 500px;
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}

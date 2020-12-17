@@ -1,0 +1,47 @@
+aws configure
+
+aws s3api create-bucket --bucket alex-bucket-resized --region "us-east-2" --create-bucket-configuration LocationConstraint="us-east-2"
+http://alex-bucket-resized.s3.amazonaws.com/
+
+aws s3api create-bucket --bucket alex-bucket-default --region "us-east-2" --create-bucket-configuration LocationConstraint="us-east-2"
+http://alex-bucket-default.s3.amazonaws.com/
+
+arn:aws:iam::560668175758:role/lambda-s3-role
+
+aws lambda create-function --function-name CreateThumbnail \
+--zip-file fileb://function.zip --handler index.handler --runtime nodejs12.x \
+--timeout 10 --memory-size 1024 \
+--role arn:aws:iam::560668175758:role/lambda-s3-role \
+--cli-binary-format raw-in-base64-out
+
+8bABpkdF4/q+83t+k9T8S3ylZKi4S3I12FEFnjrQgtY=    11111692                arn:aws:lambda:us-east-2:560668175758:function:CreateThumbnail  CreateThumbnail index.handler   2020-12-17T18:44:54.099+0000    Successful      1024    Zip     8837d481-0481-472e-a67c-ed7d8c5e053a    arn:aws:iam::560668175758:role/lambda-s3-role   nodejs12.x      Active  10      $LATEST
+TRACINGCONFIG   PassThrough
+
+aws lambda update-function-configuration --function-name CreateThumbnail --timeout 30
+
+8bABpkdF4/q+83t+k9T8S3ylZKi4S3I12FEFnjrQgtY=    11111692                arn:aws:lambda:us-east-2:560668175758:function:CreateThumbnail  CreateThumbnail index.handler   2020-12-17T18:46:35.815+0000    Successful      1024    Zip     f5a82a1b-bc92-4833-88b7-e6102cd5d6b1    arn:aws:iam::560668175758:role/lambda-s3-role   nodejs12.x      Active  30      $LATEST
+TRACINGCONFIG   PassThrough
+
+aws lambda invoke --function-name CreateThumbnail --invocation-type Event \
+--payload file://inputFile.txt outputfile.txt \
+--cli-binary-format raw-in-base64-out
+
+aws lambda add-permission --function-name CreateThumbnail --principal s3.amazonaws.com \
+--statement-id s3invoke --action "lambda:InvokeFunction" \
+--source-arn arn:aws:s3:::alex-bucket-default \
+--source-account 560668175758
+
+{"Sid":"s3invoke","Effect":"Allow","Principal":{"Service":"s3.amazonaws.com"},"Action":"lambda:InvokeFunction","Resource":"arn:aws:lambda:us-east-2:560668175758:function:CreateThumbnail","Condition":{"StringEquals":{"AWS:SourceAccount":"560668175758"},"ArnLike":{"AWS:SourceArn":"arn:aws:s3:::alex-bucket-default"}}}
+
+aws lambda get-policy --function-name CreateThumbnail
+
+{"Version":"2012-10-17","Id":"default","Statement":[{"Sid":"s3invoke","Effect":"Allow","Principal":{"Service":"s3.amazonaws.com"},"Action":"lambda:InvokeFunction","Resource":"arn:aws:lambda:us-east-2:560668175758:function:CreateThumbnail","Condition":{"StringEquals":{"AWS:SourceAccount":"560668175758"},"ArnLike":{"AWS:SourceArn":"arn:aws:s3:::alex-bucket-default"}}}]}      c4c361fa-450e-4fd6-a4ff-f98cef08f083
+
+
+
+
+aws s3 sync ~/Desktop/s3-alex-amazonchik/ s3://alex-amazonchik-d
+
+https://awspolicygen.s3.amazonaws.com/policygen.html
+
+aws s3 website s3://alex-amazonchik-d/ --index-document index.html --error-document error.html

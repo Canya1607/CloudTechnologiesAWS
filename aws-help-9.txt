@@ -1,0 +1,50 @@
+aws ecs create-cluster --cluster-name fargate-cluster
+CLUSTER 0       arn:aws:ecs:us-east-2:560668175758:cluster/fargate-cluster      fargate-cluster 0       0       0       ACTIVE
+SETTINGS        containerInsights       disabled
+
+aws ecs register-task-definition --cli-input-json file://~/Desktop/s3-alex-ecs/fargate-task.json
+TASKDEFINITION  256     sample-fargate  512     awsvpc  3       ACTIVE  arn:aws:ecs:us-east-2:560668175758:task-definition/sample-fargate:3
+COMPATIBILITIES EC2
+COMPATIBILITIES FARGATE
+CONTAINERDEFINITIONS    0       True    httpd:2.4       fargate-app
+COMMAND /bin/sh -c "echo '<html> <head> <title>Amazon ECS Sample App</title> <style>body {margin-top: 40px; background-color: #333;} </style> </head><body> <div style=color:white;text-align:center> <h1>Amazon ECS Sample App</h1> <h2>Congratulations!</h2> <p>Your application is now running on a container in Amazon ECS.</p> </div></body></html>' >  /usr/local/apache2/htdocs/index.html && httpd-foreground"
+ENTRYPOINT      sh
+ENTRYPOINT      -c
+PORTMAPPINGS    80      80      tcp
+REQUIRESATTRIBUTES      com.amazonaws.ecs.capability.docker-remote-api.1.18
+REQUIRESATTRIBUTES      ecs.capability.task-eni
+REQUIRESCOMPATIBILITIES FARGATE
+
+aws ecs list-task-definitions
+TASKDEFINITIONARNS      arn:aws:ecs:us-east-2:560668175758:task-definition/sample-fargate:3
+
+aws ecs create-service --cluster fargate-cluster --service-name fargate-service --task-definition sample-fargate:3 --desired-count 1 --launch-type "FARGATE" --network-configuration "awsvpcConfiguration={subnets=[subnet-019799bb2513e8190],securityGroups=[sg-0cf77358064e24e74],assignPublicIp=ENABLED}"
+SERVICE arn:aws:ecs:us-east-2:560668175758:cluster/fargate-cluster      2020-12-17T21:40:34.530000+02:00        arn:aws:iam::560668175758:user/hnenniy1610@gmail.com    1       False   FARGATE 0       LATEST  NONE    arn:aws:iam::560668175758:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS  0       REPLICA arn:aws:ecs:us-east-2:560668175758:service/fargate-cluster/fargate-service      fargate-service ACTIVE  arn:aws:ecs:us-east-2:560668175758:task-definition/sample-fargate:3
+DEPLOYMENTCONFIGURATION 200     100
+DEPLOYMENTCIRCUITBREAKER        False   False
+DEPLOYMENTS     2020-12-17T21:40:34.530000+02:00        1       0       ecs-svc/2715061184251902625     FARGATE 0       1.3.0   IN_PROGRESS     ECS deployment ecs-svc/2715061184251902625 in progress. 0       PRIMARY arn:aws:ecs:us-east-2:560668175758:task-definition/sample-fargate:3     2020-12-17T21:40:34.530000+02:00
+AWSVPCCONFIGURATION     ENABLED
+SECURITYGROUPS  sg-0cf77358064e24e74
+SUBNETS subnet-019799bb2513e8190
+AWSVPCCONFIGURATION     ENABLED
+SECURITYGROUPS  sg-0cf77358064e24e74
+SUBNETS subnet-019799bb2513e8190
+
+aws ecs list-services --cluster fargate-cluster
+SERVICEARNS     arn:aws:ecs:us-east-2:560668175758:service/fargate-cluster/fargate-service
+
+aws ecs describe-services --cluster fargate-cluster --services fargate-service
+SERVICES        arn:aws:ecs:us-east-2:560668175758:cluster/fargate-cluster      2020-12-17T21:40:34.530000+02:00        arn:aws:iam::560668175758:user/hnenniy1610@gmail.com    1       False   FARGATE 0       LATEST  NONE    arn:aws:iam::560668175758:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS  1       REPLICA arn:aws:ecs:us-east-2:560668175758:service/fargate-cluster/fargate-service      fargate-service ACTIVE  arn:aws:ecs:us-east-2:560668175758:task-definition/sample-fargate:3
+DEPLOYMENTCONFIGURATION 200     100
+DEPLOYMENTCIRCUITBREAKER        False   False
+DEPLOYMENTS     2020-12-17T21:40:34.530000+02:00        1       0       ecs-svc/2715061184251902625     FARGATE 0       1.3.0   COMPLETED       ECS deployment ecs-svc/2715061184251902625 completed.   1       PRIMARY arn:aws:ecs:us-east-2:560668175758:task-definition/sample-fargate:3     2020-12-17T21:41:06.270000+02:00
+AWSVPCCONFIGURATION     ENABLED
+SECURITYGROUPS  sg-0cf77358064e24e74
+SUBNETS subnet-019799bb2513e8190
+EVENTS  2020-12-17T21:41:06.278000+02:00        df1ae1b0-a8f8-40a5-808d-2380b5855c53    (service fargate-service) has reached a steady state.
+EVENTS  2020-12-17T21:41:06.277000+02:00        11f05b27-9ed2-4d9d-a7ba-0231123b5589    (service fargate-service) (deployment ecs-svc/2715061184251902625) deployment completed.
+EVENTS  2020-12-17T21:40:35.487000+02:00        ad3fdbea-22f4-4c6d-9c0a-275ff173e6fe    (service fargate-service) has started 1 tasks: (task c7e0bf0c46874e118299dd1b1c970792).
+AWSVPCCONFIGURATION     ENABLED
+SECURITYGROUPS  sg-0cf77358064e24e74
+SUBNETS subnet-019799bb2513e8190 
+
